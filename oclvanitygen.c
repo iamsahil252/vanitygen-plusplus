@@ -440,7 +440,7 @@ main(int argc, char **argv)
 		printf("Pattern: %s\n", *patterns);
 
 		vg_context_simplevanitygen_t *vc_simplevanitygen = NULL;
-		vc_simplevanitygen = (vg_context_simplevanitygen_t *) malloc(sizeof(*vc_simplevanitygen));
+		vc_simplevanitygen = (vg_context_simplevanitygen_t *) malloc(sizeof(vg_context_simplevanitygen_t));
 		if (!vc_simplevanitygen) {
 			fprintf(stderr, "Memory allocation failed\n");
 			return 1;
@@ -459,15 +459,14 @@ main(int argc, char **argv)
 		vc_simplevanitygen->pattern = *patterns;
 		vc_simplevanitygen->match_location = 1; /* By default, match begin location */
 
-		size_t pattern_len = strlen(vc_simplevanitygen->pattern);
-
 		if (regex) {
+			size_t pattern_len = strlen(vc_simplevanitygen->pattern);
 			fprintf(stderr, "WARNING: only ^ and $ is supported in regular expressions currently\n");
-			if (vc_simplevanitygen->pattern[0] == '^') {
+			if (pattern_len > 0 && vc_simplevanitygen->pattern[0] == '^') {
 				vc_simplevanitygen->match_location = 1; /* match begin location */
 				/* skip first char '^' */
 				vc_simplevanitygen->pattern = vc_simplevanitygen->pattern + 1;
-			} else if (vc_simplevanitygen->pattern[pattern_len-1] == '$') {
+			} else if (pattern_len > 0 && vc_simplevanitygen->pattern[pattern_len-1] == '$') {
 				vc_simplevanitygen->match_location = 2; /* match end location */
 				/* remove last char '$' */
 				vc_simplevanitygen->pattern[pattern_len-1] = '\0';
