@@ -458,11 +458,19 @@ main(int argc, char **argv)
 		}
 		vc_simplevanitygen->pattern = *patterns;
 		vc_simplevanitygen->match_location = 1; /* By default, match begin location */
+		char *mutable_pattern = NULL;
 
 		if (regex) {
+			mutable_pattern = strdup(vc_simplevanitygen->pattern);
+			if (!mutable_pattern) {
+				fprintf(stderr, "Memory allocation failed\n");
+				free(vc_simplevanitygen);
+				return 1;
+			}
+			vc_simplevanitygen->pattern = mutable_pattern;
 			size_t pattern_len = strlen(vc_simplevanitygen->pattern);
 			fprintf(stderr, "WARNING: only ^ and $ is supported in regular expressions currently\n");
-			if (pattern_len > 0 && vc_simplevanitygen->pattern[0] == '^') {
+			if (vc_simplevanitygen->pattern[0] == '^') {
 				vc_simplevanitygen->match_location = 1; /* match begin location */
 				/* skip first char '^' */
 				vc_simplevanitygen->pattern = vc_simplevanitygen->pattern + 1;
@@ -491,8 +499,16 @@ main(int argc, char **argv)
 		vc_simplevanitygen->vc_thread_num = nthreads;
 		vc_simplevanitygen->vc_start_time = (unsigned long)time(NULL);
 
-		if (!start_threads_simplevanitygen(vc_simplevanitygen))
+		if (!start_threads_simplevanitygen(vc_simplevanitygen)) {
+			if (mutable_pattern)
+				free(mutable_pattern);
+			free(vc_simplevanitygen);
 			return 1;
+		}
+
+		if (mutable_pattern)
+			free(mutable_pattern);
+		free(vc_simplevanitygen);
 
 		return 0;
 #endif
