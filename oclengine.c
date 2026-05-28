@@ -2726,19 +2726,20 @@ vg_ocl_context_new(vg_context_t *vcp,
 		    CL_DEVICE_TYPE_CPU)
 			nthreads = 1;
 		else {
+			size_t chosen_threads;
 			max_workgroup_size = vg_ocl_device_getsizet(
 				vocp->voc_ocldid, CL_DEVICE_MAX_WORK_GROUP_SIZE);
+			chosen_threads = max_workgroup_size;
 			/*
 			 * Many devices report very large max workgroup sizes
 			 * (e.g. 512/1024), but this kernel is register-heavy.
 			 * Cap default thread width to 256 for better occupancy.
 			 */
-			if (max_workgroup_size > GPU_DEFAULT_THREAD_CAP)
-				nthreads = GPU_DEFAULT_THREAD_CAP;
-			else if (max_workgroup_size > 0)
-				nthreads = (int)max_workgroup_size;
-			else
-				nthreads = 1;
+			if (chosen_threads > GPU_DEFAULT_THREAD_CAP)
+				chosen_threads = GPU_DEFAULT_THREAD_CAP;
+			if (chosen_threads == 0)
+				chosen_threads = 1;
+			nthreads = (int)chosen_threads;
 		}
 	}
 

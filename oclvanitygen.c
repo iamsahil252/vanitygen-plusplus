@@ -469,7 +469,7 @@ main(int argc, char **argv)
 			}
 			vc_simplevanitygen->pattern = mutable_pattern;
 			size_t pattern_len = strlen(vc_simplevanitygen->pattern);
-			fprintf(stderr, "WARNING: only ^ and $ is supported in regular expressions currently\n");
+			fprintf(stderr, "WARNING: only ^ and $ are supported in regular expressions currently\n");
 			if (vc_simplevanitygen->pattern[0] == '^') {
 				vc_simplevanitygen->match_location = 1; /* match begin location */
 				/* skip first char '^' */
