@@ -49,7 +49,7 @@ all: $(PROGS)
 vanitygen++: vanitygen.o pattern.o util.o groestl.o sha3.o ed25519.o stellar.o base32.o crc16.o simplevanitygen.o bech32.o segwit_addr.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LIBS)
 
-oclvanitygen++: oclvanitygen.o oclengine.o pattern.o util.o groestl.o sha3.o ocled25519engine.o oclvanitygen_ed25519.o stellar.o base32.o crc16.o compat.o
+oclvanitygen++: oclvanitygen.o oclengine.o pattern.o util.o groestl.o sha3.o ocled25519engine.o oclvanitygen_ed25519.o stellar.o base32.o crc16.o compat.o simplevanitygen.o bech32.o segwit_addr.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(OPENCL_LIBS)
 
 oclvanityminer: oclvanityminer.o oclengine.o pattern.o util.o groestl.o sha3.o

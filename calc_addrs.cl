@@ -1698,8 +1698,10 @@ hash_ec_point_search_prefix(__global uint *found,
 {
 	uint hash[5];
 	int i, high, low, p, cell, start;
+	uint gid;
 
 	cell = ((get_global_id(1) * get_global_size(0)) + get_global_id(0));
+	gid = (uint)cell;
 	start = (((cell / ACCESS_STRIDE) * ACCESS_BUNDLE) +
 		 (cell % ACCESS_STRIDE));
 	z_heap += start;
@@ -1735,15 +1737,13 @@ hash_ec_point_search_prefix(__global uint *found,
 		low = (p > 0) ? (i + 1) : low;
 		high = (p < 0) ? (i - 1) : high;
 		if (p == 0) {
-			/* For debugging purposes, write the hash value */
-			found[0] = ((get_global_id(1) * get_global_size(0)) +
-				    get_global_id(0));
-			found[1] = i;
-
-#define hash_ec_point_search_prefix_inner_2(i)	\
-			found[i+2] = load_be32(hash[i]);
-
-			hash160_unroll(hash_ec_point_search_prefix_inner_2);
+			/* Claim this result slot exactly once per batch. */
+			if (atomic_cmpxchg((volatile __global unsigned int *)&found[0],
+					   0xffffffffU, gid) == 0xffffffffU) {
+				found[1] = (uint)i;
+				for (p = 0; p < 5; p++)
+					found[p + 2] = load_be32(hash[p]);
+			}
 			high = -1;
 		}
 	}
@@ -1877,8 +1877,10 @@ hash_ec_point_search_prefix_suffix(__global uint *found,
 {
 	uint hash[5];
 	int i, high, low, p, cell, start;
+	uint gid;
 
 	cell = ((get_global_id(1) * get_global_size(0)) + get_global_id(0));
+	gid = (uint)cell;
 	start = (((cell / ACCESS_STRIDE) * ACCESS_BUNDLE) +
 		 (cell % ACCESS_STRIDE));
 	z_heap += start;
@@ -1923,14 +1925,12 @@ hash_ec_point_search_prefix_suffix(__global uint *found,
 					/* Prefix matched — now check suffix */
 					if (trx_check_suffix(hash, suffix_mask,
 							     suffix_target)) {
-						found[0] = ((get_global_id(1) *
-							     get_global_size(0)) +
-							    get_global_id(0));
-						found[1] = i;
-#define hash_ec_point_search_ps_trx_c(i)	\
-						found[i+2] = load_be32(hash[i]);
-						hash160_unroll(
-							hash_ec_point_search_ps_trx_c);
+						if (atomic_cmpxchg((volatile __global unsigned int *)&found[0],
+								   0xffffffffU, gid) == 0xffffffffU) {
+							found[1] = (uint)i;
+							for (p = 0; p < 5; p++)
+								found[p + 2] = load_be32(hash[p]);
+						}
 					}
 					high = -1;
 				}
@@ -1939,13 +1939,12 @@ hash_ec_point_search_prefix_suffix(__global uint *found,
 			/* Suffix-only: check every candidate */
 			if (trx_check_suffix(hash, suffix_mask,
 					     suffix_target)) {
-				found[0] = ((get_global_id(1) *
-					     get_global_size(0)) +
-					    get_global_id(0));
-				found[1] = 0;
-#define hash_ec_point_search_ps_trx_s(i)	\
-				found[i+2] = load_be32(hash[i]);
-				hash160_unroll(hash_ec_point_search_ps_trx_s);
+				if (atomic_cmpxchg((volatile __global unsigned int *)&found[0],
+						   0xffffffffU, gid) == 0xffffffffU) {
+					found[1] = 0;
+					for (p = 0; p < 5; p++)
+						found[p + 2] = load_be32(hash[p]);
+				}
 			}
 		}
 	} else {
@@ -1970,23 +1969,23 @@ hash_ec_point_search_prefix_suffix(__global uint *found,
 				low = (p > 0) ? (i + 1) : low;
 				high = (p < 0) ? (i - 1) : high;
 				if (p == 0) {
-					found[0] = ((get_global_id(1) * get_global_size(0)) +
-						    get_global_id(0));
-					found[1] = i;
-#define hash_ec_point_search_ps_inner_2(i)	\
-					found[i+2] = load_be32(hash[i]);
-					hash160_unroll(hash_ec_point_search_ps_inner_2);
+					if (atomic_cmpxchg((volatile __global unsigned int *)&found[0],
+							   0xffffffffU, gid) == 0xffffffffU) {
+						found[1] = (uint)i;
+						for (p = 0; p < 5; p++)
+							found[p + 2] = load_be32(hash[p]);
+					}
 					high = -1;
 				}
 			}
 		} else {
 			/* Suffix-only mode: no prefix table, report match directly */
-			found[0] = ((get_global_id(1) * get_global_size(0)) +
-				    get_global_id(0));
-			found[1] = 0;
-#define hash_ec_point_search_ps_inner_3(i)	\
-			found[i+2] = load_be32(hash[i]);
-			hash160_unroll(hash_ec_point_search_ps_inner_3);
+			if (atomic_cmpxchg((volatile __global unsigned int *)&found[0],
+					   0xffffffffU, gid) == 0xffffffffU) {
+				found[1] = 0;
+				for (p = 0; p < 5; p++)
+					found[p + 2] = load_be32(hash[p]);
+			}
 		}
 	}
 }
