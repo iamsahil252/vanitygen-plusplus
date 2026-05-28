@@ -60,6 +60,7 @@ ETH Privkey: 0xdb3813534c0c9595f9b8b35d6f544827065b33930ae42c38a9d7ce41a1d74669
 ```
 
 If you have an OpenCL-compatible GPU, use `oclvanitygen++` for faster performance. It supports both secp256k1 coins (BTC, ETH, etc.) and Ed25519 coins (SOL, XLM).
+For BTC SegWit v0/v1 (`-F p2wpkh` / `-F p2tr`), generation currently uses CPU worker threads.
 
 ## Ed25519 Chains (GPU)
 `oclvanitygen++` supports Ed25519-based blockchains (Solana, Stellar, TON) via `-C SOL`, `-C XLM`, or `-C TON`. The pattern uses `*` as a wildcard:

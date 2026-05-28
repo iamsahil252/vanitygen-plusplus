@@ -2678,6 +2678,7 @@ vg_ocl_context_new(vg_context_t *vcp,
 	cl_device_id did;
 	int round, full_threads, wsmult;
 	cl_ulong memsize, allocsize;
+	size_t max_workgroup_size;
 	vg_ocl_context_t *vocp;
 
 	/* Find the device */
@@ -2721,9 +2722,21 @@ vg_ocl_context_new(vg_context_t *vcp,
 		if (vg_ocl_device_gettype(vocp->voc_ocldid) &
 		    CL_DEVICE_TYPE_CPU)
 			nthreads = 1;
-		else
-			nthreads = vg_ocl_device_getsizet(vocp->voc_ocldid,
-					CL_DEVICE_MAX_WORK_GROUP_SIZE);
+		else {
+			max_workgroup_size = vg_ocl_device_getsizet(
+				vocp->voc_ocldid, CL_DEVICE_MAX_WORK_GROUP_SIZE);
+			/*
+			 * Many devices report very large max workgroup sizes
+			 * (e.g. 512/1024), but this kernel is register-heavy.
+			 * Cap default thread width to 256 for better occupancy.
+			 */
+			if (max_workgroup_size > 256)
+				nthreads = 256;
+			else if (max_workgroup_size > 0)
+				nthreads = (int)max_workgroup_size;
+			else
+				nthreads = 1;
+		}
 	}
 
 	full_threads = vg_ocl_device_getsizet(vocp->voc_ocldid,
@@ -2755,8 +2768,16 @@ vg_ocl_context_new(vg_context_t *vcp,
 	 */
 	if (!worksize) {
 		if (vg_ocl_device_gettype(vocp->voc_ocldid) &
-		    CL_DEVICE_TYPE_GPU)
-			worksize = 2048;
+		    CL_DEVICE_TYPE_GPU) {
+			/*
+			 * ETH uses a shorter hash pipeline than BTC (Keccak-only),
+			 * so it benefits from a larger default work size.
+			 */
+			if (vcp->vc_addrtype == ADDR_TYPE_ETH)
+				worksize = 4096;
+			else
+				worksize = 3072;
+		}
 		else
 			worksize = 256;
 	}
