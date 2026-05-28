@@ -79,6 +79,9 @@
 #define MAX_SLOT 2
 #define MAX_ARG 8
 #define MAX_KERNEL 3
+#define GPU_DEFAULT_THREAD_CAP 256
+#define ETH_GPU_DEFAULT_WORKSIZE 4096
+#define BTC_GPU_DEFAULT_WORKSIZE 3072
 
 #define is_pow2(v) (!((v) & ((v)-1)))
 #define round_up_pow2(x, a) (((x) + ((a)-1)) & ~((a)-1))
@@ -2730,8 +2733,8 @@ vg_ocl_context_new(vg_context_t *vcp,
 			 * (e.g. 512/1024), but this kernel is register-heavy.
 			 * Cap default thread width to 256 for better occupancy.
 			 */
-			if (max_workgroup_size > 256)
-				nthreads = 256;
+			if (max_workgroup_size > GPU_DEFAULT_THREAD_CAP)
+				nthreads = GPU_DEFAULT_THREAD_CAP;
 			else if (max_workgroup_size > 0)
 				nthreads = (int)max_workgroup_size;
 			else
@@ -2774,9 +2777,9 @@ vg_ocl_context_new(vg_context_t *vcp,
 			 * so it benefits from a larger default work size.
 			 */
 			if (vcp->vc_addrtype == ADDR_TYPE_ETH)
-				worksize = 4096;
+				worksize = ETH_GPU_DEFAULT_WORKSIZE;
 			else
-				worksize = 3072;
+				worksize = BTC_GPU_DEFAULT_WORKSIZE;
 		}
 		else
 			worksize = 256;

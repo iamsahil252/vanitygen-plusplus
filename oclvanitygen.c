@@ -441,6 +441,10 @@ main(int argc, char **argv)
 
 		vg_context_simplevanitygen_t *vc_simplevanitygen = NULL;
 		vc_simplevanitygen = (vg_context_simplevanitygen_t *) malloc(sizeof(*vc_simplevanitygen));
+		if (!vc_simplevanitygen) {
+			fprintf(stderr, "Memory allocation failed\n");
+			return 1;
+		}
 		vc_simplevanitygen->vc_format = format;
 		vc_simplevanitygen->vc_verbose = verbose;
 		vc_simplevanitygen->vc_addrtype = addrtype;
