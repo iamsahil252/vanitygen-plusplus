@@ -1700,10 +1700,6 @@ hash_ec_point_search_prefix(__global uint *found,
 	int i, high, low, p, cell, start;
 	uint gid;
 
-	/* Another work-item already reported a match for this batch. */
-	if (found[0] != 0xffffffffU)
-		return;
-
 	cell = ((get_global_id(1) * get_global_size(0)) + get_global_id(0));
 	gid = (uint)cell;
 	start = (((cell / ACCESS_STRIDE) * ACCESS_BUNDLE) +
@@ -1882,10 +1878,6 @@ hash_ec_point_search_prefix_suffix(__global uint *found,
 	uint hash[5];
 	int i, high, low, p, cell, start;
 	uint gid;
-
-	/* Another work-item already reported a match for this batch. */
-	if (found[0] != 0xffffffffU)
-		return;
 
 	cell = ((get_global_id(1) * get_global_size(0)) + get_global_id(0));
 	gid = (uint)cell;

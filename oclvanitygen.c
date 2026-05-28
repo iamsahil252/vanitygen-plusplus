@@ -197,6 +197,7 @@ main(int argc, char **argv)
 		case 'C':
 			strcpy(ticker, optarg);
 			strcat(ticker, " ");
+			coin = optarg;
 			/* Start AltCoin Generator */
 			if (strcmp(optarg, "LIST")== 0) {
 				fprintf(stderr,
